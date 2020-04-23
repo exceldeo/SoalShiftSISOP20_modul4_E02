@@ -28,11 +28,11 @@ void encrypt (char str[1000]) {
 		}
 	}
 	printf("hasil enkripsi : %s\n", str);
-
 }
 
-// Enkripsi Versi 1
 int enkripsi1 (char path[1000]) {
+
+    printf("path enkripsi : %s\n", path);
 
     DIR *dp;
     struct dirent *de;
@@ -49,19 +49,55 @@ int enkripsi1 (char path[1000]) {
         strcpy(name, de->d_name);
         printf("de->name : %s\n", name);
 
+        char path2[100], path3[100];
+        sprintf(path2, "%s/%s", path, name);
+
         if (strcmp(".", de->d_name) != 0 && strcmp("..", de->d_name) != 0 && de->d_type == 4){
             
             char folder[100];
             sprintf(folder, "%s/%s", path, name);
-            enkripsi1(folder);
+
+            // enkripsi1(folder);
             
             encrypt(name);
             printf("foldername : %s\n", name);
+
+            sprintf(path3, "%s/%s", path, name);
+            
+            int res = rename(path2, path3);
+	        if (res == -1) return -errno;
         }
         
         if (de->d_type == 8) {
-            encrypt(name);
-            printf("filename : %s\n", name);
+
+            printf("lama : %s\n", path2);
+
+            char *ext = strrchr(name, '.');
+
+            if (ext == NULL) {
+                encrypt(name);
+                printf("filename : %s\n", name);
+
+                sprintf(path3, "%s/%s", path, name);
+            }
+            else {
+                char noext[ext - name];
+                strncpy(noext, name, ext - name);
+                
+                noext[ext - name] = '\0';
+                printf("hasil : %s\n", noext);
+                
+                encrypt(noext);
+                sprintf(noext, "%s%s", noext, ext);
+                printf("%s\n", noext);
+
+                sprintf(path3, "%s/%s", path, noext);
+            }
+
+            printf("baru : %s\n", path3);
+
+            int res = rename(path2, path3);
+	        if (res == -1) return -errno;
         }
             
 
@@ -71,6 +107,97 @@ int enkripsi1 (char path[1000]) {
     return 0;
 
 }
+
+// // Dekripsi
+// void decrypt (char str[1000]) {
+
+//     printf("%s\n", str);
+	
+// 	int i, j;
+
+// 	for (i = 0; i < strlen(str); i++) {
+// 		for (j = 0; j < strlen(code); j++) {
+// 			if(str[i] == code[j]) {
+// 				str[i] = code[(j-10)%strlen(code)];
+// 				break;
+//  			}
+// 		}
+// 	}
+// 	printf("hasil dekripsi : %s\n", str);
+// }
+
+// int dekripsi1 (char path[1000]) {
+
+//     printf("path dekripsi : %s\n", path);
+
+//     DIR *dp;
+//     struct dirent *de;
+
+//     dp = opendir(path);
+//     if (dp == NULL) return -errno;
+
+//     while ((de = readdir(dp)) != NULL) {
+
+//         struct stat st;
+//         memset(&st, 0, sizeof(st));
+
+//         char name[100];
+//         strcpy(name, de->d_name);
+//         printf("de->name : %s\n", name);
+
+//         if (strcmp(".", de->d_name) != 0 && strcmp("..", de->d_name) != 0 && de->d_type == 4){
+            
+//             char folder[100];
+//             sprintf(folder, "%s/%s", path, name);
+
+//             // enkripsi1(folder);
+            
+//             decrypt(name);
+//             printf("foldername : %s\n", name);
+//         }
+        
+//         if (de->d_type == 8) {
+
+//             char path2[100], path3[100];
+//             sprintf(path2, "%s/%s", path, name);
+
+//             printf("lama : %s\n", path2);
+
+//             char *ext = strrchr(name, '.');
+
+//             if (ext == NULL) {
+//                 encrypt(name);
+//                 printf("filename : %s\n", name);
+
+//                 sprintf(path3, "%s/%s", path, name);
+//             }
+//             else {
+//                 char noext[ext - name];
+//                 strncpy(noext, name, ext - name);
+                
+//                 noext[ext - name] = '\0';
+//                 printf("hasil : %s\n", noext);
+                
+//                 encrypt(noext);
+//                 sprintf(noext, "%s%s", noext, ext);
+//                 printf("%s\n", noext);
+
+//                 sprintf(path3, "%s/%s", path, noext);
+//             }
+
+//             printf("baru : %s\n", path3);
+
+//             // int res = rename(path2, path3);
+// 	        // if (res == -1) return -errno;
+//         }
+            
+
+//     }
+
+//     closedir(dp);
+//     return 0;
+
+// }
 
 // Get file attributes
 static  int  xmp_getattr(const char *path, struct stat *stbuf) {
@@ -195,14 +322,13 @@ static int xmp_rename(const char *from, const char *to) {
         enkripsi1(fpath);
     }
 
+    // if (strncmp("/encv1_", from, 7) == 0) {
+    //     printf("dekripsi versi 1\n");
+    // }
+
 	res = rename(fpath, tpath);
 	if (res == -1)
 		return -errno;
-
-    
-    // if (strncmp("encv1_", from, 6) == 0) {
-    //     printf("dekripsi versi 1\n");
-    // }
 
 	return 0;
 }
