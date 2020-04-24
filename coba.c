@@ -291,6 +291,16 @@ static int xmp_rename(const char *from, const char *to)
     char fpath[1000],fpath2[1000];
     sprintf(fpath,"%s%s",dirpath,from);
     sprintf(fpath2,"%s%s",dirpath,to);
+    if(strstr(fpath,encv1) != NULL ){
+        char *i = strstr(fpath,encv1);
+        dencrypt(i);
+        sprintf(fpath,"%s%s",dirpath,i);
+    }
+    if(strstr(fpath,encv1) != NULL ){
+        char *i = strstr(fpath2,encv1);
+        dencrypt(i);
+        sprintf(fpath2,"%s%s",dirpath,i);
+    }
     logsytem(level2,"RENAME", temp3);
 	int res;
 
