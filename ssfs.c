@@ -28,7 +28,27 @@ void encrypt (char str[1000]) {
 		}
 	}
 	printf("hasil enkripsi : %s\n", str);
+}
 
+// Dekripsi
+void decrypt (char str[1000]) {
+
+    printf("%s\n", str);
+	
+	int i, j;
+
+	for (i = 0; i < strlen(str); i++) {
+		for (j = 0; j < strlen(code); j++) {
+			if(str[i] == code[j]) {
+				if(j - 10 < 0)
+                    str[i] = code[strlen(code) + (j-10)];
+                else
+                    str[i] = code[j-10];
+				break;
+ 			}
+		}
+	}
+	printf("hasil dekripsi : %s\n", str);
 }
 // denkripsi
 void dencrypt (char str[1000]) {
@@ -50,8 +70,9 @@ void dencrypt (char str[1000]) {
 
 }
 
-// Enkripsi Versi 1
-int enkripsi1 (char path[1000]) {
+int versisatu (char path[1000], int status) {
+
+    printf("path : %s\n", path);
 
     DIR *dp;
     struct dirent *de;
@@ -68,22 +89,65 @@ int enkripsi1 (char path[1000]) {
         strcpy(name, de->d_name);
         printf("de->name : %s\n", name);
 
+        char path2[100], path3[100];
+        sprintf(path2, "%s/%s", path, name);
+
         if (strcmp(".", de->d_name) != 0 && strcmp("..", de->d_name) != 0 && de->d_type == 4){
             
             char folder[100];
             sprintf(folder, "%s/%s", path, name);
-            enkripsi1(folder);
-            
-            encrypt(name);
+
+            if (status == 1) {
+                encrypt(name);
+                versisatu(folder, 1);
+            }
+            else {
+                decrypt(name);
+                versisatu(folder, 0);
+            }
+
             printf("foldername : %s\n", name);
+            sprintf(path3, "%s/%s", path, name);
+            
+            int res = rename(path2, path3);
+	        if (res == -1) return -errno;
         }
         
         if (de->d_type == 8) {
-            encrypt(name);
-            printf("filename : %s\n", name);
-        }
-            
 
+            printf("lama : %s\n", path2);
+
+            char *ext = strrchr(name, '.');
+
+            if (ext == NULL) {
+                if (status == 1) encrypt(name);
+                else decrypt(name);
+
+                printf("filename : %s\n", name);
+
+                sprintf(path3, "%s/%s", path, name);
+            }
+            else {
+                char noext[ext - name];
+                strncpy(noext, name, ext - name);
+                
+                noext[ext - name] = '\0';
+                printf("hasil : %s\n", noext);
+                
+                if (status == 1) encrypt(noext);
+                else decrypt(noext);
+                
+                sprintf(noext, "%s%s", noext, ext);
+                printf("%s\n", noext);
+
+                sprintf(path3, "%s/%s", path, noext);
+            }
+
+            printf("baru : %s\n", path3);
+
+            int res = rename(path2, path3);
+	        if (res == -1) return -errno;
+        }
     }
 
     closedir(dp);
@@ -217,17 +281,17 @@ static int xmp_rename(const char *from, const char *to) {
 
     if (strncmp("/encv1_", to, 7) == 0) {
         printf("enkripsi versi 1\n");
-        enkripsi1(fpath);
+        versisatu(fpath, 1);
+    }
+
+    if (strncmp("/encv1_", from, 7) == 0) {
+        printf("dekripsi versi 1\n");
+        versisatu(fpath, 0);
     }
 
 	res = rename(fpath, tpath);
 	if (res == -1)
 		return -errno;
-
-    
-    // if (strncmp("encv1_", from, 6) == 0) {
-    //     printf("dekripsi versi 1\n");
-    // }
 
 	return 0;
 }
