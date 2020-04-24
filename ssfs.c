@@ -10,7 +10,7 @@
 #include <sys/time.h>
 #include <sys/stat.h>
 
-static  const  char *dirpath = "/home/qqdnada/Documents";
+static  const  char *dirpath = "/home/excel/Documents";
 char code[100] = "9(ku@AW1[Lmvgax6q`5Y2Ry?+sF!^HKQiBXCUSe&0M.b%rI'7d)o4~VfZ*{#:}ETt$3J-zpc]lnh8,GwP_ND|jO";
 
 // Enkripsi
@@ -50,6 +50,25 @@ void decrypt (char str[1000]) {
 		}
 	}
 	printf("hasil dekripsi : %s\n", str);
+}
+// denkripsi
+void dencrypt (char str[1000]) {
+
+    printf("%s\n", str);
+	
+	int i, j;
+
+	for (i = 0; i < strlen(str); i++) {
+		for (j = 0; j < strlen(code); j++) {
+			if(str[i] == code[j]) {
+                if(j - 10 < 0) j=+strlen(code);
+				str[i] = code[(j-10)];
+				break;
+ 			}
+		}
+	}
+	printf("hasil enkripsi : %s\n", str);
+
 }
 
 int versisatu (char path[1000], int status) {
@@ -144,6 +163,7 @@ static  int  xmp_getattr(const char *path, struct stat *stbuf) {
 
     int res;
     char fpath[1000];
+    dencrypt(path);
 
     sprintf(fpath,"%s%s", dirpath, path);
 
@@ -161,6 +181,7 @@ static int xmp_mkdir(const char *path, mode_t mode) {
 
 	int res;
     char fpath[1000];
+    encrypt(path);
 
     sprintf(fpath,"%s%s", dirpath, path);
     printf("fpath mkdir %s\n", fpath);
@@ -179,12 +200,16 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_
     char fpath[1000];
 
     printf("readdir %s\n", path);
-
+    // encrypt(path);
     if(strcmp(path,"/") == 0) {
         path = dirpath;
         sprintf(fpath, "%s", path);
     }
-    else sprintf(fpath, "%s%s", dirpath, path);
+        else {
+        char temp[1000];
+        encrypt(path)
+        sprintf(fpath, "%s%s",dirpath,temp);
+    }
 
     printf("fpath readdir %s\n", fpath);
 
@@ -204,7 +229,7 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_
 
         st.st_ino = de->d_ino;
         st.st_mode = de->d_type << 12;
-
+        
         res = (filler(buf, de->d_name, &st, 0));
         if(res!=0) break;
     }
