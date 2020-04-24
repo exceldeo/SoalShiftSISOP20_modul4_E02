@@ -8,6 +8,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <sys/time.h>
+#include <sys/stat.h>
 
 static  const  char *dirpath = "/home/excel/Documents";
 char code[100] = "9(ku@AW1[Lmvgax6q`5Y2Ry?+sF!^HKQiBXCUSe&0M.b%rI'7d)o4~VfZ*{#:}ETt$3J-zpc]lnh8,GwP_ND|jO";
@@ -266,6 +267,124 @@ static int xmp_read(const char *path, char *buf, size_t size, off_t offset, stru
 
 }
 
+static int xmp_utimens(const char *path, const struct timespec ts[2]) {
+
+    printf("masuk utimens %s\n", path);
+
+	int res;
+	struct timeval tv[2];
+
+    char fpath[1000];
+    sprintf(fpath,"%s%s", dirpath, path);
+
+    printf("fpath create %s\n", fpath);
+
+	tv[0].tv_sec = ts[0].tv_sec;
+	tv[0].tv_usec = ts[0].tv_nsec / 1000;
+	tv[1].tv_sec = ts[1].tv_sec;
+	tv[1].tv_usec = ts[1].tv_nsec / 1000;
+
+	res = utimes(fpath, tv);
+	if (res == -1) return -errno;
+
+	return 0;
+}
+
+static int xmp_write(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
+
+	int res;
+    char fpath[1000];
+
+    printf("write %s\n", path);
+
+    if(strcmp(path,"/") == 0) {
+        path=dirpath;
+        sprintf(fpath, "%s", path);
+        printf("masuk write %s\n", path);
+    }
+    else sprintf(fpath, "%s%s", dirpath, path);
+
+    int fd;
+	(void) fi;
+
+	fd = open(fpath, O_WRONLY);
+	if (fd == -1)
+		return -errno;
+
+	res = pwrite(fd, buf, size, offset);
+	if (res == -1) res = -errno;
+
+	close(fd);
+	return res;
+}
+
+static int xmp_create(const char* path, mode_t mode, struct fuse_file_info* fi) {
+
+    printf("create : %s\n", path);
+
+    int i, n = 0, status = 0;
+    (void) fi;
+
+    char temp[1000], nama[100][1000],
+         pathfile[100] = "/";
+    strcpy(temp, path);
+
+    char *token;
+    token = strtok(temp, "/");
+    while (token != NULL) {
+        if (strncmp("encv1_", token, 6) == 0) {
+            printf("enkripsi 1\n");
+            status = 1;
+        }
+        strcpy(nama[n++], token);
+
+        token = strtok(NULL, "/");
+    }
+    
+    if (status == 1) {
+        for (i = 0; i < n - 1; i++)
+            sprintf(pathfile, "%s%s/", pathfile, nama[i]);
+    
+        char filename[100];
+        strcpy(filename, nama[n-1]);
+
+        printf("n: %d | path: %s | namafile: %s\n", n, pathfile, filename);
+
+        char *ext = strrchr(filename, '.');
+        if (ext == NULL) {
+            encrypt(filename);
+            sprintf(pathfile, "%s%s", pathfile, filename);
+        }
+        else {
+            char noext[ext - filename];
+            strncpy(noext, filename, ext - filename);
+                
+            noext[ext - filename] = '\0';
+            printf("hasil : %s\n", noext);
+
+            encrypt(noext);
+            sprintf(noext, "%s%s", noext, ext);
+
+            sprintf(pathfile, "%s%s", pathfile, noext);
+        }
+        printf("pathbaru: %s\n", pathfile);
+    }
+    else
+        strcpy(pathfile, path);
+
+    char fpath[1000];
+    sprintf(fpath,"%s%s", dirpath, pathfile);
+
+    printf("fpath create %s\n", fpath);
+
+    int res = creat(fpath, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+    if(res == -1) return -errno;
+
+    close(res);
+
+    return 0;
+}
+
 static int xmp_rename(const char *from, const char *to) {
 
     printf("rename %s to %s\n", from, to);
@@ -296,6 +415,8 @@ static int xmp_rename(const char *from, const char *to) {
 	return 0;
 }
 
+
+
 static struct fuse_operations xmp_oper = {
 
     .getattr = xmp_getattr,
@@ -303,7 +424,10 @@ static struct fuse_operations xmp_oper = {
     .readdir = xmp_readdir,
     .read = xmp_read,
     .rename = xmp_rename,
-    
+    .write = xmp_write,
+    .create = xmp_create,
+    .utimens = xmp_utimens,
+
 }; 
 
 int  main(int  argc, char *argv[]) {
