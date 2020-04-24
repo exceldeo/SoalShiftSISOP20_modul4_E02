@@ -181,8 +181,13 @@ static int xmp_mkdir(const char *path, mode_t mode)
     char temp[1000];
     strcpy(temp,path);
     logsytem(level2,"MKDIR",temp);
-    sprintf(fpath,"%s%s",dirpath,temp);
-	res = mkdir(fpath, mode);
+    sprintf(fpath, "%s%s",dirpath,temp);
+    if(strstr(fpath,encv1) != NULL && strcmp(".", temp) != 0 && strcmp("..", temp) != 0){
+        char *i = strstr(fpath,encv1);
+        dencrypt(i);
+        sprintf(fpath,"%s%s",dirpath,i);
+    }
+    res = mkdir(fpath, mode);
 	if (res == -1)
 		return -errno;
 
@@ -283,7 +288,7 @@ static int xmp_rename(const char *from, const char *to)
     strcpy(temp3,from);
     strcat(temp3,"::");
     strcat(temp3,to);
-char fpath[1000],fpath2[1000];
+    char fpath[1000],fpath2[1000];
     sprintf(fpath,"%s%s",dirpath,from);
     sprintf(fpath2,"%s%s",dirpath,to);
     logsytem(level2,"MOVE", temp3);
