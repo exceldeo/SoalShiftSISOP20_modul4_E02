@@ -291,10 +291,10 @@ static int xmp_rename(const char *from, const char *to)
     char fpath[1000],fpath2[1000];
     sprintf(fpath,"%s%s",dirpath,from);
     sprintf(fpath2,"%s%s",dirpath,to);
-    logsytem(level2,"MOVE", temp3);
+    logsytem(level2,"RENAME", temp3);
 	int res;
 
-	res = rename(fpath2, fpath2);
+	res = rename(fpath, fpath2);
 	if (res == -1)
 		return -errno;
 
