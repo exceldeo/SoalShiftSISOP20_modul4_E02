@@ -37,7 +37,6 @@ void logsytem(char *level, char *cmd, char *desc){
 // Enkripsi
 void encrypt (char *str) {
 
-    // printf("%s\n", str);
 	int i, j,flag = 1,flag2 = 1;
     for(i = strlen(str); i >= 0 ; --i){
         if(str[i] == '.'){
@@ -45,7 +44,6 @@ void encrypt (char *str) {
         }
 
     }
-
 
 	for (i = strlen(str); i >= 0 ; --i) {
 		for (j = 0; j < strlen(code); j++) {
@@ -60,26 +58,18 @@ void encrypt (char *str) {
             }
 		}
 	}
-	// printf("hasil enkripsi : %s\n", str);
 
 }
 
 // denkripsi
 void dencrypt (char *str) {
-
-    // printf("%s\n", str);
 	
 	int start, i, j,flag = 1,flag2 = 1,flag3 = 0;
-    printf("str %c %d\n",str[2],strlen(str));
     for(start = 0; start < strlen(str) ; start++){
-        printf("%c ",str[start]);
         if(str[start] == 'e' && str[start+1] == 'n' && str[start+2] == 'c' && str[start+3] == 'v' && str[start+4] == '1' && str[start+5] == '_'){
             flag3 = 1;
-            printf("start %d ",start);
         }
         if(str[start] == '/' && flag3 == 1){
-            // start++;
-            printf("startf %d ",start);
             break;
         }
     }
@@ -104,46 +94,24 @@ void dencrypt (char *str) {
             }
 		}
 	}
-	printf("hasil denkripsi : %s\n", str);
 }
 
-// void ngeread()
 
 static  int  xmp_getattr(const char *path, struct stat *stbuf)
 {
     char temp3[1000];
     strcpy(temp3,path);
     logsytem(level2,"LS", temp3);
-    // printf("apder %s\n",path);
-    // char * pointer = strstr(path,encv1);
-    // if(pointer != NULL){
-    // printf("apinter %s\n",pointer);
-        // dencrypt(pointer);
-    // printf("apinter33 %s\n",pointer);
-    // }  
     int res;
     char fpath[1000];
     char temp[1000];
     strcpy(temp,path);
-    // if(strcmp(".", path) != 0 && strcmp("..", path) != 0 )
-    // dencrypt(temp);
     sprintf(fpath,"%s%s",dirpath,temp);
-    // if(strncmp(fpath,encv1,7) == 0)
-     printf("attaa=============");
-    if(strstr(fpath,encv1) != NULL ){
+    if(strstr(fpath,encv1) != NULL && strcmp(".", temp) != 0 && strcmp("..", temp) != 0){
         char *i = strstr(fpath,encv1);
-        printf("atta=============");
             dencrypt(i);
-            printf("attb=============");
         sprintf(fpath,"%s%s",dirpath,i);
-    // printf("denktip1 %s %s\n",fpath,i);
-
-    // encrypt(temp1);
     }
-
-     printf("%s\nattbb=============",fpath);
-    // printf("atte %s\n",fpath);
-    // printf("atribut %s\n",fpath);
     res = lstat(fpath, stbuf);
     if (res == -1)
         return -errno;
@@ -165,28 +133,14 @@ off_t offset, struct fuse_file_info *fi)
         sprintf(fpath,"%s",path);
     }
     else {
-        // char * pointer = strstr(path,encv1);
         char temp[1000];
         strcpy(temp,path);
-        // if(pointer != NULL){
-        // printf("pinter %s\n",pointer);
-            // dencrypt(pointer);
-        // printf("pinter33 %s\n",pointer);
-        // }
-        // printf("readdir %s\n",temp);
-        // printf("fpath %s\n",temp);
         sprintf(fpath, "%s%s",dirpath,temp);
-        // if(strncmp(fpath,encv1,7) == 0)
-        // if(strstr(fpath,encv1) != NULL ){
-        //     // printf("denktip");
-        //     char *i = strstr(fpath,encv1);
-        //     printf("readdir=============");
-        //     dencrypt(i);
-        //     printf("readdir=============");
-        //     sprintf(fpath,"%s%s",dirpath,i);
-
-        //     // encrypt(temp1);
-        // }
+        if(strstr(fpath,encv1) != NULL && strcmp(".", temp) != 0 && strcmp("..", temp) != 0){
+            char *i = strstr(fpath,encv1);
+            dencrypt(i);
+            sprintf(fpath,"%s%s",dirpath,i);
+        }
     }
     int res = 0;  
 
@@ -207,23 +161,9 @@ off_t offset, struct fuse_file_info *fi)
         st.st_mode = de->d_type << 12;
         char temp1[100];
         strcpy(temp1,de->d_name);
-        // printf("nama %s\n",de->d_name);
-        // char * pointer2 = strstr(de->d_name,encv1);
-        // if(pointer2 != NULL)  
-        // // dencrypt(pointer2);
-        // if(strcmp(".", de->d_name) != 0 && strcmp("..", de->d_name) != 0){
-        //     // printf("temp = %s\n",de->d_name);
-        // continue;
-        // }
-        // printf("coa %s\n",temp1);
-        if(strstr(fpath,encv1) != NULL ){
-            // printf("enktip");
-
+        if(strstr(fpath,encv1) != NULL && strcmp(".", de->d_name) != 0 && strcmp("..", de->d_name) != 0){
             encrypt(temp1);
         }
-        // if(strncmp(fpath,encv1,7) == 0){
-        // }
-        // printf("dname -> %s\nflat %s\n",temp1,fpath);
         res = (filler(buf, temp1, &st, 0));
         if(res!=0) break;
     }
@@ -255,35 +195,17 @@ struct fuse_file_info *fi)
     char temp3[1000];
     strcpy(temp3,path);
     logsytem(level2,"CAT", temp3);
-    // char * pointer = strstr(path,encv1);
-    // if(pointer != NULL)  
-    //     dencrypt(pointer);
-
     char fpath[1000];
     if(strcmp(fpath,"/") == 0)
     {
         path=dirpath;
         sprintf(fpath,"%s",path);
-        // printf("+++++++++++++++++++");
     }
     else {
         char temp[1000];
-        // printf("----------------------");
         strcpy(temp,path);
-        // dencrypt(temp);
         sprintf(fpath, "%s%s",dirpath,temp);
-        if(strstr(fpath,encv1) != NULL ){
-            printf("read=============");
-        char *i = strstr(fpath,encv1);
-            dencrypt(i);
-            printf("read=============");
-        sprintf(fpath,"%s%s",dirpath,i);
-    // printf("denktip1 %s %s\n",fpath,i);
-
-    // encrypt(temp1);
-        }
     }
-    // printf("read %s\n",fpath);
     int res = 0;
     int fd = 0 ;
 
@@ -311,8 +233,6 @@ static int xmp_mknod(const char *path, mode_t mode, dev_t rdev)
 	int res;
     char fpath[1000];
     sprintf(fpath,"%s%s",dirpath,path);
-	/* On Linux this could just be 'mknod(path, mode, rdev)' but this
-	   is more portable */
 	if (S_ISREG(mode)) {
 		res = open(fpath, O_CREAT | O_EXCL | O_WRONLY, mode);
 		if (res >= 0)
