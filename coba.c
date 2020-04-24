@@ -28,7 +28,7 @@ void logsytem(char *level, char *cmd, char *desc){
     strcat(log,cmd);
     strcat(log,"::");
     strcat(log,desc);
-    fp = fopen ("/home/excel/Downloads/fs.log","a");
+    fp = fopen ("/home/excel/fs.log","a");
     fprintf(fp, "%s\n",log);
     fclose(fp);
 
